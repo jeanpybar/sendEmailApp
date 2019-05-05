@@ -1,0 +1,123 @@
+﻿@{
+    ViewData["Title"] = "Email Status";
+}
+<!DOCTYPE html>
+<body ng-app="myApp" ng-controller="emailSearch">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="form_startDate">Start Date</label>
+                <input id="form_startDate" type="datetime-local" name="startDate" ng-model="startDate" class="form-control"
+                       required="required" data-error="Start Date is required.">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="form_endDate">End Date</label>
+                <input id="form_endDate" type="datetime-local" name="endDate" ng-model="endDate" class="form-control"
+                       required="required" data-error="End date is required is required.">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="form_email">Address</label>
+                <input id="form_email" type="email" name="ToEmail" ng-model="ToEmail" class="form-control"
+                       required="required" data-error="ToEmail is required.">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="form_subject">Subject</label>
+                <input id="form_subject" type="text" name="subject" ng-model="subject" class="form-control"
+                       required="required" data-error="subject is required.">
+                <div class="help-block with-errors"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <button class="btn btn-warning btn-send" value="Search" ng-click="search()">Search</button>
+        </div>
+    </div>
+    <table class="table">
+        <thead class="thead-dark">
+            <tr>
+                <th scope="col">Address</th>
+                <th scope="col">Subject</th>
+                <th scope="col">Message</th>
+                <th scope="col">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="email in emailArray">
+                <td><label>{{email.toEmail}}</label></td>
+                <td><label>{{email.subject}}</label></td>
+                <td><label>{{email.message}}</label></td>
+                <td><label>{{email.status}}</label></td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <script>
+        var app = angular.module('myApp', []);
+
+
+        app.controller('emailSearch', ['$scope', 'emailService', '$rootScope',
+            function ($scope, emailService, $rootScope) {
+
+                $scope.$on('eventFired', function (event, data) {
+                    console.log(data.data.data);
+                    $scope.emailArray = (data.data.data);
+                    if ($scope.emailArray === undefined || $scope.emailArray.length == 0) {
+                        alert('no data found');
+                    }
+                })
+
+                $scope.search = function () {
+                    $scope.emailArray = [];
+                    
+                    if ($scope.ToEmail === undefined) { $scope.ToEmail = ''; }
+                    
+                    if ($scope.subject === undefined) { $scope.subject = ''; }
+                    console.log($scope.subject);
+                    console.log($scope.startDate);
+                    console.log($scope.endDate);
+                        $scope.emailInfo = {
+                            ToEmail: $scope.ToEmail,
+                            StartDate: $scope.startDate,
+                            EndDate: $scope.endDate,
+                            Subject: $scope.subject
+                    };
+                    if ($scope.endDate === undefined) { $scope.emailInfo.EndDate = null; } else { $scope.emailInfo.EndDate = ($scope.endDate).toJSON(); };
+                    if ($scope.startDate === undefined) { $scope.emailInfo.StartDate = null; } else { $scope.emailInfo.StartDate = ($scope.startDate).toJSON(); };
+                        emailService.saveResultService($scope.emailInfo);
+                }
+            }]);
+
+        app.service('emailService', ['$http', '$rootScope', function ($http, $rootScope) {
+            this.saveResultService = function (emailInfo) {
+                console.log(emailInfo);
+                $http({
+                    method: 'GET',
+                    url: 'https://emailsenderappjean.azurewebsites.net/Email/EmailSearch?' + 'StartDate=' + emailInfo.StartDate + '&EndDate=' + emailInfo.EndDate + '&ToEmail=' + emailInfo.ToEmail + '&Subject=' + emailInfo.Subject
+                })
+                    .then(function successCallback(response) {
+                        $rootScope.$broadcast('eventFired', {
+                            data: response
+                        });
+                    }, function errorCallback(response) {
+                        $rootScope.$broadcast('eventFired', {
+                            data: response
+                        });
+                    });
+            }
+        }]);
+    </script>
+</body>

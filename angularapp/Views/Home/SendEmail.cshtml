@@ -1,0 +1,92 @@
+﻿<!DOCTYPE html>
+
+
+<body>
+    <h2> Send an email</h2>
+    <div ng-app="myApp" ng-controller="emailSendCtrl"
+          name="myForm">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="form_email">ToEmail</label>
+                    <input id="form_email" type="email" name="ToEmail" ng-model="ToEmail" class="form-control"
+                           required="required" data-error="ToEmail is required.">
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="form_subject">Subject</label>
+                    <input id="form_subject" type="text" name="subject" ng-model="subject" class="form-control"
+                           required="required" data-error="subject is required.">
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label for="form_message">Message</label>
+                    <textarea id="form_message" name="message" class="form-control" rows="4"
+                              ng-model="message" required="required" data-error="Please, enter a message to be sent"></textarea>
+                    <div class="help-block with-errors"></div>
+                </div>
+            </div>
+            <div class="col-md-12">
+                <button class="btn btn-success btn-send" value="Send message" ng-click="saveResult()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = angular.module('myApp', []);
+
+
+        app.controller('emailSendCtrl', ['$scope', 'emailService','$rootScope',
+            function ($scope, emailService, $rootScope) {  
+
+                $scope.$on('eventFired', function (event, data) {
+                    console.log(data.data);
+                    if (data.data === 'ok') { alert('email sent succesfully') } else { alert('email not sent') }
+                })
+
+                $scope.saveResult = function () {
+                    if (($scope.ToEmail !== '' && $scope.ToEmail !== undefined) && ($scope.subject !== '' && $scope.subject !== undefined) && ($scope.message !== '' && $scope.message !== undefined)) {
+                       
+                            $scope.emailInfo = {
+                                ToEmail: $scope.ToEmail,
+                                Subject: $scope.subject,
+                                Message: $scope.message
+                            };
+                            emailService.saveResultService($scope.emailInfo);
+                        
+                    }
+                    else { alert('missing or wrong informartion') }
+                }
+                }]);
+
+        app.service('emailService', ['$http', '$rootScope', function ($http, $rootScope) {
+            this.saveResultService = function (emailInfo) {
+                console.log(emailInfo);    
+                $http({
+                    method: 'POST',
+                    url: 'https://emailsenderappjean.azurewebsites.net/Email/SendMail',
+                    data: JSON.stringify(emailInfo),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(function successCallback(response) {
+                        $rootScope.$broadcast('eventFired', {
+                            data: 'ok'
+                        });   
+                    }, function errorCallback(response) {
+                        $rootScope.$broadcast('eventFired', {
+                            data: 'bad'
+                        });   
+                    });
+            }
+        }]);
+    </script>
+</body>
+
