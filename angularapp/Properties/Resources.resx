@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ApiKey" xml:space="preserve">
-    <value>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</value>
+    <value>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</value>
     <comment>Valor del Key del APi de sendgrid</comment>
   </data>
   <data name="ConnectionString" xml:space="preserve">
